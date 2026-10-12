@@ -44,6 +44,27 @@ def test_blank_title_rejected_on_create_and_update(client):
     assert client.get(f"/tasks/{task['id']}").json()["title"] == "Write tests"
 
 
+def test_title_longer_than_200_chars_rejected(client):
+    assert create(client, title="x" * 200).status_code == 201
+    res = create(client, title="x" * 201)
+    assert res.status_code == 422
+    assert "200" in res.json()["detail"]
+
+    task = create(client).json()
+    assert client.patch(f"/tasks/{task['id']}", json={"title": "x" * 201}).status_code == 422
+
+
+def test_malformed_json_returns_readable_422(client):
+    res = client.post("/tasks", content="{bad", headers={"content-type": "application/json"})
+    assert res.status_code == 422
+    assert res.json() == {"detail": "JSON decode error"}
+
+
+def test_missing_body_and_field_messages(client):
+    assert client.post("/tasks").json() == {"detail": "body: Field required"}
+    assert client.post("/tasks", json={}).json() == {"detail": "title: Field required"}
+
+
 def test_patch_missing_task_returns_404(client):
     assert client.patch(f"/tasks/{uuid4()}", json={"completed": True}).status_code == 404
 

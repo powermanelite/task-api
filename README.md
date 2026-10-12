@@ -52,6 +52,7 @@ On macOS/Linux use `python3 -m venv .venv`, then `.venv/bin/python -m pip instal
 
 ## Decisions
 - `PATCH` applies only the fields sent; explicit `null` for `title`/`completed` is rejected, `description: null` clears it.
+- Titles are trimmed and limited to 200 characters.
 - Validation failures return 422, unknown ids 404, malformed UUID 422.
 - Deleting a missing task returns 404 (not an idempotent 204).
 - Storage is not thread-safe; fine for a single-worker demo.

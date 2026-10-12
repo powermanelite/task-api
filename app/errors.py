@@ -7,10 +7,16 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 def _format_validation_error(exc: RequestValidationError) -> str:
     parts = []
     for err in exc.errors():
-        # Drop the leading "body"/"query"/"path" segment for readability.
-        loc = ".".join(str(p) for p in err["loc"][1:]) or str(err["loc"][0])
+        # Drop the leading "body"/"query"/"path" segment and any numeric
+        # positions (e.g. a JSON parse error offset) for readability.
+        fields = [str(p) for p in err["loc"][1:] if isinstance(p, str)]
         msg = err["msg"].removeprefix("Value error, ")
-        parts.append(f"{loc}: {msg}")
+        if fields:
+            parts.append(f"{'.'.join(fields)}: {msg}")
+        elif err["loc"][0] == "body" and len(err["loc"]) == 1:
+            parts.append(f"body: {msg}")
+        else:
+            parts.append(msg)
     return "; ".join(parts)
 
 

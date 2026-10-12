@@ -4,6 +4,9 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, field_validator
 
 
+MAX_TITLE_LENGTH = 200
+
+
 def _require_non_blank(value: str) -> str:
     value = value.strip()
     if not value:
@@ -20,7 +23,7 @@ class Task(BaseModel):
 
 
 class TaskCreate(BaseModel):
-    title: str
+    title: str = Field(max_length=MAX_TITLE_LENGTH)
     description: str | None = None
     completed: bool = False
 
@@ -30,7 +33,7 @@ class TaskCreate(BaseModel):
 class TaskUpdate(BaseModel):
     """Partial update: only fields present in the request body are applied."""
 
-    title: str | None = None
+    title: str | None = Field(default=None, max_length=MAX_TITLE_LENGTH)
     description: str | None = None
     completed: bool | None = None
 
